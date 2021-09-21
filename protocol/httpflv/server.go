@@ -89,6 +89,7 @@ func (server *Server) getStream(w http.ResponseWriter, r *http.Request) {
 	}
 	resp, _ := json.Marshal(msgs)
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Write(resp)
 }
 
@@ -101,6 +102,7 @@ func (server *Server) handleConn(w http.ResponseWriter, r *http.Request) {
 
 	url := r.URL.String()
 	u := r.URL.Path
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	if pos := strings.LastIndex(u, "."); pos < 0 || u[pos:] != ".flv" {
 		http.Error(w, "invalid path", http.StatusBadRequest)
 		return
@@ -133,7 +135,6 @@ func (server *Server) handleConn(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 	writer := NewFLVWriter(paths[0], paths[1], url, w)
 
 	server.handler.HandleWriter(writer)

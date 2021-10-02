@@ -21,6 +21,9 @@ var RoomKeys = &RoomKeysType{
 
 var saveInLocal = true
 
+//old ky
+var oldKey string
+
 func Init() {
 	saveInLocal = len(Config.GetString("redis_addr")) == 0
 	if saveInLocal {
@@ -47,12 +50,16 @@ func (r *RoomKeysType) SetKey(channel string) (key string, err error) {
 		for {
 			key = uid.RandStringRunes(48)
 			if _, err = r.redisCli.Get(key).Result(); err == redis.Nil {
+				//get old key
+				oldKey, err = r.redisCli.Get(channel).Result()
+				if err != nil {
+					return
+				}
 				err = r.redisCli.Set(channel, key, 0).Err()
 				if err != nil {
 					return
 				}
-
-				err = r.redisCli.Set(key, channel, 0).Err()
+				err = r.redisCli.Rename(oldKey, key).Err()
 				return
 			} else if err != nil {
 				return
